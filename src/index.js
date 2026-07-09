@@ -1,7 +1,8 @@
 // require('dotenv').config({path: './env'})
 import dns from "node:dns" // insted of using the dns server provided by windows or my network, use these public DNS servers to resolve domain names
-import dotenv from 'dotenv';
+import dotenv from 'dotenv'; // node.js doesnt automatically lods the .env file we need to load it manually by this
 import connectDB from './db/index.js';
+import { app } from './app.js'
 
  dns.setServers(['1.1.1.1', '8.8.8.8']) // 1.1.1.1 = cloudfare DNS, 8.8.8.8 = Google DNS
 dotenv.config({
