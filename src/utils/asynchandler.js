@@ -3,7 +3,7 @@ const asyncHandler = (requestHandler) =>
     (req, res, next) => {
         Promise.resolve(requestHandler(req, res, next))
             .catch((err) => next(err));
-    };
+    }; // yaha pe sir ne return karwake server run kiya lekin ap ne apne se he bina return likhe db connect karwa deya aur server cahane laga esko find kariye aisa kyo
 
 
 export {asyncHandler}
