@@ -8,3 +8,4 @@ class ApiResponse{
 }
 
 // learn about status code
+export {ApiResponse}

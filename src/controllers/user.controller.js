@@ -19,7 +19,7 @@ const registerUser = asynchandler(async(req, res) => {
     // }
 
     if(
-        [fullname, email, username, password].some((field) => {field?.trim() === ""})
+        [fullname, email, username, password].some((field) => field?.trim() === "")
     ){
         throw new ApiError(400, "All fields are required")
     }
@@ -29,7 +29,7 @@ const registerUser = asynchandler(async(req, res) => {
     })
 
     if(existedUser){
-        throw new ApiError(409, "User with email or username already exist")
+        throw new ApiError(409, "User with email, phone or username already exist")
     }
 
 
