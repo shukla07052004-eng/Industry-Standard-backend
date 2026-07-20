@@ -6,7 +6,7 @@ import { app } from './app.js'
 
  dns.setServers(['1.1.1.1', '8.8.8.8']) // 1.1.1.1 = cloudfare DNS, 8.8.8.8 = Google DNS
 dotenv.config({
-    path: './env'
+    path: './.env'
 });
 connectDB()
 .then(()=>{

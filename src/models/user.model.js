@@ -30,7 +30,7 @@ const userSchema = new Schema({
         type: String, // cloudinary url
         required: true,
     },
-    coverImage: {
+    coverimage: {
         type: String, // cloudinary url
     },
     watchHistory: [
@@ -53,9 +53,9 @@ const userSchema = new Schema({
     }
 )
 userSchema.pre("save", async function(next){
-    if(!this.isModified("password")) return next() // matlab ess method me aao he mat
+    if(!this.isModified("password")) return next // matlab ess method me aao he mat
     this.password = bcrypt.hash(this.password, 10) // hash round = 10
-    next()
+    next
 })
 
 userSchema.methods.isPasswordCorrect = async function(password){
