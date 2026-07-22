@@ -20,6 +20,7 @@ router.route("/register").post(
 )
 
 router.route("/login").post(
+    upload.none(),// aise bahot sare route honge jaha ham multer ka user nahi karenge to samajh jana   ""  console.log("Content-Type:", req.headers["content-type"]); "" main issue yahi hai
     loginUser
 )
 

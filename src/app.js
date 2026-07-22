@@ -8,7 +8,7 @@ const app = express();
 // read about all the options from doumentation of cors package
 app.use(cors({
     origin: process.env.CORS_ORGIN,
-    Credential: true
+    credentials: true
 }))
 
 // when data is coming in json have more research on it

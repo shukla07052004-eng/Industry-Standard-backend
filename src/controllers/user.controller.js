@@ -97,13 +97,23 @@ const registerUser = asyncHandler(async (req, res) => {
 })
 
 const loginUser = asyncHandler(async (req, res) => {
-    const { email, username, password } = req.body;
 
-    if (!username || !email) {
+    // FOR DEBUGGING PURPOSE
+    // console.log("Method:", req.method);
+    // console.log("Content-Type:", req.headers["content-type"]);
+    // console.log("Body:", req.body);
+
+
+    const { email, username, password } = req.body
+    console.log("email: ", email);
+
+    console.log(req.body)
+
+    if (!(username || email)) {
         throw new ApiError(400, "username or email is required")
     }
 
-    const user = User.findOne({
+    const user = await User.findOne({
         $or: [{ username }, { email }]
     })
 
@@ -111,7 +121,13 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(404, "User does not exist")
     }
 
-    const isPasswordValid = await user.isPasswordCorrect(password)
+    console.log(user.password)
+    console.log("Entered Password:", password);
+    console.log("Stored Password:", user.password);
+
+    const isPasswordValid = await user.isPasswordCorrect(password);
+
+    console.log("Result:", isPasswordValid);
 
     if (!isPasswordValid) {
         throw new ApiError(401, "Password is incorrect")
@@ -119,7 +135,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id)
 
-    const loggedInUser = await user.findById(user._id)
+    const loggedInUser = await User.findById(user._id)
         .select(
             " -refreshToken -password "
         )
@@ -165,10 +181,10 @@ const logoutUser = asyncHandler(async (req, res) => {
     }
 
     return res
-    .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
-    .json(new ApiResponse(200, {}, "User Logged Out"))
+        .status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(new ApiResponse(200, {}, "User Logged Out"))
 })
 
 export {
