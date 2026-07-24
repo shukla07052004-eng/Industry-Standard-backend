@@ -187,8 +187,67 @@ const logoutUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "User Logged Out"))
 })
 
+const generatingNewToken = asyncHandler(async (req, res) => {
+    try {
+
+        console.log(req.cookies.refreshToken)
+        console.log(req.cookie)
+        console.log(req.body.refreshToken)
+
+        const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+
+        if (!incomingRefreshToken) {
+            throw new ApiError(401, "Incoming token is not valid")
+        }
+
+        const decodedToken = jwt.verify(
+            incomingRefreshToken,
+            process.env.REFRESH_TOKEN_SECRET
+        )
+
+        const user = await User.findById(decodedToken?._id)
+
+        if(!user){
+            throw new ApiError(401, error?.message || "Invalid refresh token")
+        }
+
+
+        if (incomingRefreshToken !== user?.refreshToken) {
+            throw new ApiError(400, "Not a valid User")
+        }
+
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+
+        const { accessToken, newRefreshToken } = await generateAccessAndRefreshTokens(user._id)
+
+        res
+            .status(200)
+            .Cookie("accessToken", accessToken, options)
+            .Cookie("refreshToken", newRefreshToken, options)
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        accessToken,
+                        refreshToken: newRefreshToken
+                    },
+                    "refreshed access token and refresh token generated successfully"
+
+                )
+            )
+
+
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Invalid refresh token")
+    }
+})
+
 export {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    generatingNewToken
 }
