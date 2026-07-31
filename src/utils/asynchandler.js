@@ -1,21 +1,27 @@
-// another syntax fpr same functonality
-const asyncHandler = (requestHandler) =>
-    (req, res, next) => {
-        Promise.resolve(requestHandler(req, res, next))
-            .catch((err) => next(err));
-    }; // yaha pe sir ne return karwake server run kiya lekin ap ne apne se he bina return likhe db connect karwa deya aur server cahane laga esko find kariye aisa kyo
+const asyncHandler = (requestHandler) => {
+    return (req, res, next) => {
+        Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err))
+    }
+}
 
 
-export {asyncHandler}
+export { asyncHandler }
 
-// we create a wrapper function that we are going to use further
+
+
+
+// const asyncHandler = () => {}
+// const asyncHandler = (func) => () => {}
+// const asyncHandler = (func) => async () => {}
+
+
 // const asyncHandler = (fn) => async (req, res, next) => {
-//     try{
+//     try {
 //         await fn(req, res, next)
-//     } catch(error){
-//         res.status(error.code || 500).json({
+//     } catch (error) {
+//         res.status(err.code || 500).json({
 //             success: false,
-//             message: error.message || "Internal Server Error"
+//             message: err.message
 //         })
 //     }
 // }

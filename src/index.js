@@ -1,51 +1,50 @@
 // require('dotenv').config({path: './env'})
-import dns from "node:dns" // insted of using the dns server provided by windows or my network, use these public DNS servers to resolve domain names
-import dotenv from 'dotenv'; // node.js doesnt automatically lods the .env file we need to load it manually by this
-import connectDB from './db/index.js';
-import { app } from './app.js'
-
- dns.setServers(['1.1.1.1', '8.8.8.8']) // 1.1.1.1 = cloudfare DNS, 8.8.8.8 = Google DNS
+import dotenv from "dotenv"
+import connectDB from "./db/index.js";
+import {app} from './app.js'
 dotenv.config({
     path: './.env'
-});
-connectDB()
-.then(()=>{
-    app.on("error", (error) => {
-        console.error("Error: ", error);
-        throw error;
-    });
+})
 
+
+
+connectDB()
+.then(() => {
     app.listen(process.env.PORT || 8000, () => {
-        console.log(`Server is running on port ${process.env.PORT || 8000}`);
-    });
+        console.log(`⚙️ Server is running at port : ${process.env.PORT}`);
+    })
 })
-.catch((error)=>{
-    console.log("Error in connecting to DB !!!", error)
+.catch((err) => {
+    console.log("MONGO db connection failed !!! ", err);
 })
+
+
+
+
+
+
+
 
 
 
 /*
-import mongoose from 'mongoose';
-import { DB_NAME } from './constants';
-
-import express from 'express';
-const app = express();
-
-(async () => {
-    try{
+import express from "express"
+const app = express()
+( async () => {
+    try {
         await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`)
-        app.on("error", () => {
-            console.error("Error: ", error)
+        app.on("errror", (error) => {
+            console.log("ERRR: ", error);
             throw error
         })
 
         app.listen(process.env.PORT, () => {
-            console.log(`Server is running on port ${process.env.PORT}`)
-        });
-    } catch(error){
-        console.error("Error: ", error)
-        throw error
+            console.log(`App is listening on port ${process.env.PORT}`);
+        })
+
+    } catch (error) {
+        console.error("ERROR: ", error)
+        throw err
     }
 })()
 
