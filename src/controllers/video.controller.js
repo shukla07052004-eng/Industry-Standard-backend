@@ -1,19 +1,79 @@
-import mongoose, {isValidObjectId} from "mongoose"
-import {Video} from "../models/video.model.js"
-import {User} from "../models/user.model.js"
-import {ApiError} from "../utils/ApiError.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import mongoose, { isValidObjectId } from "mongoose"
+import { Video } from "../models/video.model.js"
+import { User } from "../models/user.model.js"
+import { ApiError } from "../utils/ApiError.js"
+import { ApiResponse } from "../utils/ApiResponse.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
+import { uploadOnCloudinary } from "../utils/cloudinary.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
+
+
+    // Get videos from MongoDB (their Cloudinary URLs are already stored in the database)
+    // Apply filters (query, userId)
+    // Apply sorting
+    // Apply pagination
+    // Return the videos in the response
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
-    //TODO: get all videos based on query, sort, pagination
+
+
+    const pagenum = Number(page)
+    const limitnum = Number(limit)
+
+    const skip = (pagenum - 1) * limitnum;
+
+    const pipeline = []
+    
+
+    if(query){
+        pipeline.push(
+            {
+                $match: {
+                    $or:{
+
+                        title: {
+                            $regex: query,
+                            $options: "i"
+                        },
+                        discription: {
+                            $regex: query,
+                            $options: "i"
+                        }
+                    }
+                    }
+            }
+        )
+    }
+    if(userId){
+        pipeline.push(
+            {
+                $match: {
+                    owner: new mongoose.Types.ObjectId(userId)
+                }
+            }
+        )
+    }
+    pipeline.push(
+        {
+            $skip: skip
+        },
+        {
+            $limitnum: limitNumber
+        }
+    )
+    const videos = await Video.aggregate(pipeline)
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, videos, "get all the videos")
+    )
+
 })
 
 const publishAVideo = asyncHandler(async (req, res) => {
-    const { title, description} = req.body
+    const { title, description } = req.body
     // TODO: get video, upload to cloudinary, create video
 })
 
