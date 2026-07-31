@@ -16,59 +16,125 @@ const getAllVideos = asyncHandler(async (req, res) => {
     // Apply pagination
     // Return the videos in the response
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+    const sortField = sortBy || "updatedAt";
+    const order = sortType === "asc" ? 1 : -1;
 
+    const skip = (pageNum - 1) * limitNum;
 
-    const pagenum = Number(page)
-    const limitnum = Number(limit)
+    const match = {
+        ...(userId && {
+            owner: new mongoose.Types.ObjectId(userId)
+        }),
 
-    const skip = (pagenum - 1) * limitnum;
-
-    const pipeline = []
-    
-
-    if(query){
-        pipeline.push(
-            {
-                $match: {
-                    $or:{
-
-                        title: {
-                            $regex: query,
-                            $options: "i"
-                        },
-                        discription: {
-                            $regex: query,
-                            $options: "i"
-                        }
+        ...(query && {
+            $or: [
+                {
+                    title: {
+                        $regex: query,
+                        $options: "i"
                     }
+                },
+                {
+                    description: {
+                        $regex: query,
+                        $options: "i"
                     }
-            }
-        )
-    }
-    if(userId){
-        pipeline.push(
-            {
-                $match: {
-                    owner: new mongoose.Types.ObjectId(userId)
                 }
-            }
-        )
-    }
-    pipeline.push(
+            ]
+        })
+    };
+
+    const videos = await Video.aggregate([
+
         {
-            $skip: skip
+            $match: match
         },
+
         {
-            $limitnum: limitNumber
+            $sort: {
+                [sortField]: order
+            },
+        },
+        { $skip: skip },
+        { $limit: limitNum },
+
+        {
+            $project: {
+                views: 1,
+                description: 1,
+                title: 1,
+                videoFile: 1,
+                thumbnail: 1,
+                duration: 1
+            }
+
         }
-    )
-    const videos = await Video.aggregate(pipeline)
+
+    ])
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200, videos, "get all the videos")
-    )
+        .status(200)
+        .json(
+            new ApiResponse(200, videos, "get all the videos")
+        )
+
+
+    // ANOTHER WAY TO WRITE SAME PIPELINE USING "if" STATEMENT OUTSIDE PIPLINE    
+
+    // const pagenum = Number(page)
+    // const limitnum = Number(limit)
+
+    // const skip = (pagenum - 1) * limitnum;
+
+    // const pipeline = []
+
+
+    // if (query) {
+    //     pipeline.push(
+    //         {
+    //             $match: {
+    //                 $or: {
+
+    //                     title: {
+    //                         $regex: query,
+    //                         $options: "i"
+    //                     },
+    //                     discription: {
+    //                         $regex: query,
+    //                         $options: "i"
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     )
+    // }
+    // if (userId) {
+    //     pipeline.push(
+    //         {
+    //             $match: {
+    //                 owner: new mongoose.Types.ObjectId(userId)
+    //             }
+    //         }
+    //     )
+    // }
+
+    // const sortBy = "updateAt";
+    // const sortType = "asc";
+
+    // pipeline.push({
+    //     $sort: {
+    //         [sortBy]: sortType === "asc"? 1 : -1
+    //     }
+    // })
+
+    // const videos = (await Video.aggregate(pipeline))
+    // return res
+    //     .status(200)
+    //     .json(
+    //         new ApiResponse(200, videos, "get all the videos")
+    //     )
 
 })
 
