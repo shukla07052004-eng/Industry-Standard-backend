@@ -146,10 +146,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
     // return response to user with title and discription
     const { title, description } = req.body
 
-    if (
-        [title, description].some((field) => field?.trim() === "")
-    ) {
-        throw new ApiError(400, "Basic info about video is required fields are required")
+    if (!title?.trim() || !description?.trim()) {
+        throw new ApiError(400, "Title and description are required");
     }
 
     const LocalVideoFilePath = req.files?.videoFile?.[0].path;
@@ -162,17 +160,17 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Thumbnail is required")
     }
 
-    const video = uploadOnCloudinary(LocalVideoFilePath)
-    const thumbnail = uploadOnCloudinary(LocaThumbnailPath)
+    const video = await uploadOnCloudinary(LocalVideoFilePath)
+    const thumbnail = await uploadOnCloudinary(LocalThumbnailPath)
 
     if (!video || !thumbnail) {
         throw new ApiError(404, "videoFile is not uploded on claudinary")
     }
 
-    const video = await Video.create({
+    const createvideo = await Video.create({
         title,
         description,
-        VideoFile: video.secure.url,
+        videoFile: video.secure.url,
         duration: video.duration,
         thumbnail: thumbnail.secure.url,
         owner: req.user?._id
@@ -180,9 +178,9 @@ const publishAVideo = asyncHandler(async (req, res) => {
     })
 
     return res.status(200)
-    .json(
-        new ApiResponse(200, video, "video file is uploaded successfully")
-    )
+        .json(
+            new ApiResponse(200, createvideo, "video file is uploaded successfully")
+        )
 
 })
 
