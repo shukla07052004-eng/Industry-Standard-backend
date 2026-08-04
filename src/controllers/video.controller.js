@@ -139,8 +139,51 @@ const getAllVideos = asyncHandler(async (req, res) => {
 })
 
 const publishAVideo = asyncHandler(async (req, res) => {
-    const { title, description } = req.body
     // TODO: get video, upload to cloudinary, create video
+    // get the local path of the videofile
+    // upload it to the claudinary
+    // save url to database
+    // return response to user with title and discription
+    const { title, description } = req.body
+
+    if (
+        [title, description].some((field) => field?.trim() === "")
+    ) {
+        throw new ApiError(400, "Basic info about video is required fields are required")
+    }
+
+    const LocalVideoFilePath = req.files?.videoFile?.[0].path;
+    const LocalThumbnailPath = req.files?.thumbnail?.[0].path;
+
+    if (!LocalVideoFilePath) {
+        throw new ApiError(400, "video file is required")
+    }
+    if (!LocalThumbnailPath) {
+        throw new ApiError(400, "Thumbnail is required")
+    }
+
+    const video = uploadOnCloudinary(LocalVideoFilePath)
+    const thumbnail = uploadOnCloudinary(LocaThumbnailPath)
+
+    if (!video || !thumbnail) {
+        throw new ApiError(404, "videoFile is not uploded on claudinary")
+    }
+
+    const video = await Video.create({
+        title,
+        description,
+        VideoFile: video.secure.url,
+        duration: video.duration,
+        thumbnail: thumbnail.secure.url,
+        owner: req.user?._id
+
+    })
+
+    return res.status(200)
+    .json(
+        new ApiResponse(200, video, "video file is uploaded successfully")
+    )
+
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
