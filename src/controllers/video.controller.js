@@ -62,7 +62,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
         {
             $project: {
-                views: 1,
                 description: 1,
                 title: 1,
                 videoFile: 1,
@@ -177,21 +176,75 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
     })
 
-    return res.status(200)
+    return res.status(201)
         .json(
-            new ApiResponse(200, createvideo, "video file is uploaded successfully")
+            new ApiResponse(201, createvideo, "video file is uploaded successfully")
         )
 
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: get video by id
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid video ID")
+    }
+    await Video.updateOne(
+        { _id: videoId },
+        {
+            $inc: {
+                views: 1
+            }
+        }
+    );
+
+    const video = await Video.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(videoId)
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner"
+            }
+        },
+        {
+            $unwind: "$owner"
+        },
+        {
+            $project: {
+                description: 1,
+                title: 1,
+                videoFile: 1,
+                thumbnail: 1,
+                duration: 1,
+                views: 1,
+                owner: 1
+            }
+        }
+
+    ]
+    )
+
+    if (!video.length) {
+        throw new ApiError(404, "Video not found");
+    }
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, video, "details of video is finally fetched")
+        )
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: update video details like title, description, thumbnail
+
+
 
 })
 
