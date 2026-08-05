@@ -244,6 +244,44 @@ const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: update video details like title, description, thumbnail
 
+    const {title, description} = req.body
+    if(!(title || description)){
+        throw new ApiError(404, "error, fields are required")
+    }
+
+    const LocalThumbnailPath = req.file.path
+
+    if(!LocalThumbnailPath){
+        throw new ApiError(400, "error,  Thumbnail is missing")
+    }
+
+    const Thumbnail = uploadOnCloudinary(LocalThumbnailPath)
+    if(!Thumbnail.url){
+        throw new ApiError(400, "error, Claudinary upload failed" )
+    }
+
+    const video = await Video.findByIdAndUpdate(
+         _id,
+         {
+            $set:{
+               title,
+               description,
+               thumbnail: Thumbnail.url
+            }
+         },
+         {
+            new: "true"
+         }
+    )
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, video, "video details uploaded successfully")
+    )
+
+
+
 
 
 })
