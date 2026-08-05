@@ -241,50 +241,50 @@ const getVideoById = asyncHandler(async (req, res) => {
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
-    //TODO: update video details like title, description, thumbnail
+    const { videoId } = req.params;
+    const { title, description } = req.body;
 
-    const {title, description} = req.body
-    if(!(title || description)){
-        throw new ApiError(404, "error, fields are required")
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid video ID");
     }
 
-    const LocalThumbnailPath = req.file.path
-
-    if(!LocalThumbnailPath){
-        throw new ApiError(400, "error,  Thumbnail is missing")
+    if (!title && !description && !req.file) {
+        throw new ApiError(400, "At least one field is required");
     }
 
-    const Thumbnail = uploadOnCloudinary(LocalThumbnailPath)
-    if(!Thumbnail.url){
-        throw new ApiError(400, "error, Claudinary upload failed" )
+    const updateFields = {};
+
+    if (title) updateFields.title = title;
+    if (description) updateFields.description = description;
+
+    if (req.file?.path) {
+        const thumbnail = await uploadOnCloudinary(req.file.path);
+
+        if (!thumbnail?.url) {
+            throw new ApiError(400, "Cloudinary upload failed");
+        }
+
+        updateFields.thumbnail = thumbnail.url;
     }
 
     const video = await Video.findByIdAndUpdate(
-         _id,
-         {
-            $set:{
-               title,
-               description,
-               thumbnail: Thumbnail.url
-            }
-         },
-         {
-            new: "true"
-         }
-    )
+        videoId,
+        {
+            $set: updateFields,
+        },
+        {
+            new: true,
+        }
+    );
 
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(200, video, "video details uploaded successfully")
-    )
+    if (!video) {
+        throw new ApiError(404, "Video not found");
+    }
 
-
-
-
-
-})
+    return res.status(200).json(
+        new ApiResponse(200, video, "Video updated successfully")
+    );
+});
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
