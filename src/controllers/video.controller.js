@@ -288,7 +288,26 @@ const updateVideo = asyncHandler(async (req, res) => {
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid video ID");
+    }
     //TODO: delete video
+    const video = await Video.findById(videoId)
+
+    if (!video) {
+        throw new ApiError(404, "Video not found");
+    }
+
+    // Delete thumbnail and video from Cloudinary
+    await deleteFromCloudinary(video.thumbnail);
+    await deleteFromCloudinary(video.videoFile);
+    await video.deleteOne();
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200,{}, 'video deleted successfully')
+        )
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
